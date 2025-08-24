@@ -136,7 +136,7 @@ class LargeCSVAnalyzer:
             first_col = df.columns[0]
             print(df[first_col].value_counts().head(10))
     
-    def filter_and_sample(self, method='dask', sample_size=1000):
+    def filter_and_sample(self, method='dask', sample_size=5000):
         """Filter data and create a smaller sample for detailed analysis"""
         print(f"\nCreating sample dataset ({sample_size:,} rows) using {method.upper()}")
         
@@ -206,7 +206,7 @@ def main():
     
     # Create sample dataset
     print("\n" + "=" * 50)
-    analyzer.filter_and_sample(method='dask' if analyzer.file_size < 1000 else 'pandas_streaming')
+    analyzer.filter_and_sample(method='dask' if analyzer.file_size < 1000 else 'pandas_streaming', sample_size=5000)
     
     print("\nAnalysis complete! Check the generated sample file for further exploration.")
 
