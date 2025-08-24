@@ -19,76 +19,76 @@ def load_sample_data():
         if sample_files:
             # Use the most recent sample file
             sample_file = max(sample_files, key=lambda x: os.path.getctime(x))
-            print(f"📁 Loading sample data from: {sample_file}")
+            print(f"Loading sample data from: {sample_file}")
             df = pd.read_csv(sample_file)
             return df
         else:
-            print("❌ No sample file found. Please run the large_csv_analyzer.py first.")
+            print("No sample file found. Please run the large_csv_analyzer.py first.")
             return None
     except Exception as e:
-        print(f"❌ Error loading sample data: {e}")
+        print(f"Error loading sample data: {e}")
         return None
 
 def basic_exploration(df):
     """Basic data exploration"""
-    print("\n🔍 BASIC DATA EXPLORATION")
+    print("\nBASIC DATA EXPLORATION")
     print("=" * 40)
     
-    print(f"📊 Dataset shape: {df.shape}")
-    print(f"🔤 Columns: {list(df.columns)}")
-    print(f"📋 Data types:\n{df.dtypes}")
+    print(f"Dataset shape: {df.shape}")
+    print(f"Columns: {list(df.columns)}")
+    print(f"Data types:\n{df.dtypes}")
     
-    print(f"\n📄 First 5 rows:")
+    print(f"\nFirst 5 rows:")
     print(df.head())
     
-    print(f"\n📄 Last 5 rows:")
+    print(f"\nLast 5 rows:")
     print(df.tail())
     
-    print(f"\n📊 Basic statistics:")
+    print(f"\nBasic statistics:")
     print(df.describe())
     
-    print(f"\n🔍 Missing values:")
+    print(f"\nMissing values:")
     print(df.isnull().sum())
 
 def filtering_practice(df):
     """Practice filtering operations"""
-    print("\n🔍 FILTERING PRACTICE")
+    print("\nFILTERING PRACTICE")
     print("=" * 40)
     
     # Show unique values in first few columns
     for col in df.columns[:3]:  # First 3 columns
         if df[col].dtype == 'object':  # String/categorical columns
             unique_vals = df[col].value_counts().head(5)
-            print(f"\n🔤 Top 5 values in '{col}':")
+            print(f"\nTop 5 values in '{col}':")
             print(unique_vals)
     
     # Demonstrate filtering
-    print(f"\n🔍 Filtering examples:")
+    print(f"\nFiltering examples:")
     
     # Filter by first column (assuming it's categorical)
     first_col = df.columns[0]
     if df[first_col].dtype == 'object':
         top_value = df[first_col].value_counts().index[0]
         filtered_df = df[df[first_col] == top_value]
-        print(f"📊 Rows where '{first_col}' equals '{top_value}': {len(filtered_df):,}")
+        print(f"Rows where '{first_col}' equals '{top_value}': {len(filtered_df):,}")
         
         if len(filtered_df) > 0:
-            print(f"📄 Sample of filtered data:")
+            print(f"Sample of filtered data:")
             print(filtered_df.head(3))
 
 def sorting_practice(df):
     """Practice sorting operations"""
-    print("\n📊 SORTING PRACTICE")
+    print("\nSORTING PRACTICE")
     print("=" * 40)
     
     # Sort by first column
     first_col = df.columns[0]
-    print(f"📊 Sorting by '{first_col}' (ascending):")
+    print(f"Sorting by '{first_col}' (ascending):")
     sorted_df = df.sort_values(first_col)
     print(sorted_df.head(5))
     
     # Sort by first column descending
-    print(f"\n📊 Sorting by '{first_col}' (descending):")
+    print(f"\nSorting by '{first_col}' (descending):")
     sorted_df_desc = df.sort_values(first_col, ascending=False)
     print(sorted_df_desc.head(5))
     
@@ -96,49 +96,49 @@ def sorting_practice(df):
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     if len(numeric_cols) > 0:
         numeric_col = numeric_cols[0]
-        print(f"\n📊 Sorting by numeric column '{numeric_col}' (descending):")
+        print(f"\nSorting by numeric column '{numeric_col}' (descending):")
         sorted_numeric = df.sort_values(numeric_col, ascending=False)
         print(sorted_numeric.head(5))
 
 def aggregation_practice(df):
     """Practice aggregation operations"""
-    print("\n📈 AGGREGATION PRACTICE")
+    print("\nAGGREGATION PRACTICE")
     print("=" * 40)
     
     # Group by first categorical column
     first_col = df.columns[0]
     if df[first_col].dtype == 'object':
-        print(f"📊 Grouping by '{first_col}':")
+        print(f"Grouping by '{first_col}':")
         grouped = df.groupby(first_col)
         
-        print(f"📊 Number of groups: {len(grouped)}")
+        print(f"Number of groups: {len(grouped)}")
         
         # Show group sizes
         group_sizes = grouped.size()
-        print(f"\n📊 Group sizes:")
+        print(f"\nGroup sizes:")
         print(group_sizes.head(10))
         
         # If there are numeric columns, show aggregations
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         if len(numeric_cols) > 0:
             numeric_col = numeric_cols[0]
-            print(f"\n📊 Aggregating '{numeric_col}' by '{first_col}':")
+            print(f"\nAggregating '{numeric_col}' by '{first_col}':")
             agg_result = grouped[numeric_col].agg(['count', 'mean', 'min', 'max'])
             print(agg_result.head(10))
 
 def data_cleaning_practice(df):
     """Practice data cleaning operations"""
-    print("\n🧹 DATA CLEANING PRACTICE")
+    print("\nDATA CLEANING PRACTICE")
     print("=" * 40)
     
     # Check for missing values
     missing_counts = df.isnull().sum()
-    print(f"📊 Missing values per column:")
+    print(f"Missing values per column:")
     print(missing_counts)
     
     # Handle missing values
     if missing_counts.sum() > 0:
-        print(f"\n🧹 Handling missing values...")
+        print(f"\nHandling missing values...")
         
         # Fill numeric columns with mean
         numeric_cols = df.select_dtypes(include=[np.number]).columns
@@ -146,7 +146,7 @@ def data_cleaning_practice(df):
             if df[col].isnull().sum() > 0:
                 mean_val = df[col].mean()
                 df[col].fillna(mean_val, inplace=True)
-                print(f"✅ Filled missing values in '{col}' with mean: {mean_val:.2f}")
+                print(f"Filled missing values in '{col}' with mean: {mean_val:.2f}")
         
         # Fill categorical columns with mode
         categorical_cols = df.select_dtypes(include=['object']).columns
@@ -154,7 +154,7 @@ def data_cleaning_practice(df):
             if df[col].isnull().sum() > 0:
                 mode_val = df[col].mode()[0]
                 df[col].fillna(mode_val, inplace=True)
-                print(f"✅ Filled missing values in '{col}' with mode: {mode_val}")
+                print(f"Filled missing values in '{col}' with mode: {mode_val}")
     
     # Remove duplicates
     initial_rows = len(df)
@@ -162,15 +162,15 @@ def data_cleaning_practice(df):
     final_rows = len(df)
     
     if initial_rows != final_rows:
-        print(f"🧹 Removed {initial_rows - final_rows} duplicate rows")
+        print(f"Removed {initial_rows - final_rows} duplicate rows")
     else:
-        print("✅ No duplicate rows found")
+        print("No duplicate rows found")
     
-    print(f"📊 Final dataset shape: {df.shape}")
+    print(f"Final dataset shape: {df.shape}")
 
 def visualization_practice(df):
     """Practice creating visualizations"""
-    print("\n📊 VISUALIZATION PRACTICE")
+    print("\nVISUALIZATION PRACTICE")
     print("=" * 40)
     
     try:
@@ -221,22 +221,22 @@ def visualization_practice(df):
         
         plt.tight_layout()
         plt.savefig('trader_joes_analysis.png', dpi=300, bbox_inches='tight')
-        print("📊 Visualization saved as 'trader_joes_analysis.png'")
+        print("Visualization saved as 'trader_joes_analysis.png'")
         
     except Exception as e:
-        print(f"❌ Error creating visualization: {e}")
+        print(f"Error creating visualization: {e}")
 
 def main():
     """Main function to run the data practice"""
-    print("🛒 Trader Joe's Data Manipulation Practice")
+    print("Trader Joe's Data Manipulation Practice")
     print("=" * 50)
     
     # Load the sample data
     df = load_sample_data()
     
     if df is None:
-        print("❌ Cannot proceed without sample data.")
-        print("💡 Please run 'python large_csv_analyzer.py' first to create a sample.")
+        print("Cannot proceed without sample data.")
+        print("Please run 'python large_csv_analyzer.py' first to create a sample.")
         return
     
     # Run all practice exercises
@@ -247,8 +247,8 @@ def main():
     data_cleaning_practice(df)
     visualization_practice(df)
     
-    print("\n✅ Practice session complete!")
-    print("💡 You can now explore the data further or modify the scripts.")
+    print("\nPractice session complete!")
+    print("You can now explore the data further or modify the scripts.")
 
 if __name__ == "__main__":
     import os

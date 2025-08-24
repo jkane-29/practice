@@ -1,0 +1,26 @@
+{
+  "ed6d30f8ed10b663662ece433e1789ab_load_method=dask": {
+    "timestamp": 1756007216.944294,
+    "operation": "load_dask",
+    "size_bytes": 166,
+    "data_type": "DataFrame"
+  },
+  "ed6d30f8ed10b663662ece433e1789ab_filter_filters=[('item_title', 'Tortilla Espa\u00f1ola'), ('store_code', 701)]": {
+    "timestamp": 1756007218.157551,
+    "operation": "filter_2_conditions",
+    "size_bytes": 18326,
+    "data_type": "DataFrame"
+  },
+  "ed6d30f8ed10b663662ece433e1789ab_load_low_memory=False_method=dask": {
+    "timestamp": 1756007228.220813,
+    "operation": "load_dask",
+    "size_bytes": 181,
+    "data_type": "DataFrame"
+  },
+  "ed6d30f8ed10b663662ece433e1789ab_filter_filters=[('item_title', 'Tortilla Espa\u00f1ola')]": {
+    "timestamp": 1756007229.236804,
+    "operation": "filter_1_conditions",
+    "size_bytes": 56620,
+    "data_type": "DataFrame"
+  }
+}
