@@ -7,7 +7,7 @@ Calculate inflation rates for custom baskets of goods across different stores an
 import pandas as pd
 import numpy as np
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from datetime import datetime, timedelta
 import os
 
@@ -150,19 +150,27 @@ class InflationCalculator:
             (filtered_df[last_price_col] > 0)
         ]
         
+        # Remove duplicates based on item_title
+        available_products = available_products.drop_duplicates(subset=['item_title'])
+        
         # Update listbox
         self.product_listbox.delete(0, tk.END)
+        if hasattr(self, 'product_data'):
+            self.product_data.clear()
+        
         for _, row in available_products.iterrows():
             first_price = row[first_price_col]
             last_price = row[last_price_col]
             price_change = last_price - first_price
             price_change_pct = (price_change / first_price * 100) if first_price > 0 else 0
             
-            display_text = f"{row['item_title'][:50]}... | ${first_price:.2f} → ${last_price:.2f} ({price_change_pct:+.1f}%)"
-            self.product_listbox.insert(tk.END, display_text)
+            display_text = f"{row['item_title'][:60]} | ${first_price:.2f} → ${last_price:.2f} ({price_change_pct:+.1f}%)"
             
-            # Store the actual item data
-            self.product_listbox.itemconfig(tk.END, {'data': row})
+            # Store row data in a dictionary for later retrieval
+            if not hasattr(self, 'product_data'):
+                self.product_data = {}
+            self.product_data[len(self.product_listbox.get(0, tk.END))] = row
+            self.product_listbox.insert(tk.END, display_text)
     
     def add_to_basket(self, event):
         """Add double-clicked item to basket"""
@@ -183,17 +191,44 @@ class InflationCalculator:
             return
         
         # Get the selected item data
-        item_data = self.product_listbox.itemconfig(selection[0], 'data')[4]  # Get the data attribute
+        item_data = self.product_data[selection[0]]
         
         # Check if item is already in basket
         item_title = item_data['item_title']
-        if any(item['title'] == item_title for item in self.basket):
-            messagebox.showwarning("Warning", f"{item_title} is already in your basket")
+        existing_item = next((item for item in self.basket if item['title'] == item_title), None)
+        
+        if existing_item:
+            # Item exists, ask if user wants to add more
+            response = messagebox.askyesno("Item Exists", 
+                f"{item_title} is already in your basket (Qty: {existing_item['quantity']}).\n\nWould you like to add more?")
+            if response:
+                # Ask for additional quantity
+                try:
+                    additional_qty = tk.simpledialog.askinteger("Quantity", 
+                        f"How many more {item_title}?\n(Current: {existing_item['quantity']})", 
+                        minvalue=1, maxvalue=99)
+                    if additional_qty:
+                        existing_item['quantity'] += additional_qty
+                        self.update_basket_display()
+                        messagebox.showinfo("Updated", f"Updated {item_title} quantity to {existing_item['quantity']}")
+                except:
+                    pass
             return
+        
+        # Ask for quantity for new item
+        try:
+            quantity = tk.simpledialog.askinteger("Quantity", 
+                f"How many {item_title}?", 
+                minvalue=1, maxvalue=99)
+            if not quantity:
+                return
+        except:
+            quantity = 1
         
         # Add to basket
         basket_item = {
             'title': item_title,
+            'quantity': quantity,
             'first_price': item_data[f'store_{store}_first_price'],
             'last_price': item_data[f'store_{store}_last_price'],
             'price_change': item_data[f'store_{store}_price_change'],
@@ -208,14 +243,31 @@ class InflationCalculator:
     
     def remove_from_basket(self):
         """Remove selected item from basket"""
-        # For simplicity, we'll remove the last item added
-        # In a more sophisticated version, you could add a selection mechanism
-        if self.basket:
+        if not self.basket:
+            messagebox.showwarning("Warning", "Basket is empty")
+            return
+        
+        # Create a simple selection dialog
+        if len(self.basket) == 1:
+            # Only one item, remove it directly
             removed_item = self.basket.pop()
             self.update_basket_display()
             messagebox.showinfo("Info", f"Removed: {removed_item['title']}")
         else:
-            messagebox.showwarning("Warning", "Basket is empty")
+            # Multiple items, let user choose
+            item_list = [f"{i+1}. {item['title']} (Qty: {item['quantity']})" for i, item in enumerate(self.basket)]
+            item_str = "\n".join(item_list)
+            
+            try:
+                choice = simpledialog.askinteger("Remove Item", 
+                    f"Which item would you like to remove?\n\n{item_str}\n\nEnter item number (1-{len(self.basket)}):",
+                    minvalue=1, maxvalue=len(self.basket))
+                if choice:
+                    removed_item = self.basket.pop(choice - 1)
+                    self.update_basket_display()
+                    messagebox.showinfo("Info", f"Removed: {removed_item['title']}")
+            except:
+                pass
     
     def clear_basket(self):
         """Clear the entire basket"""
@@ -239,14 +291,14 @@ class InflationCalculator:
         total_last_value = 0
         
         for i, item in enumerate(self.basket, 1):
-            self.basket_text.insert(tk.END, f"{i}. {item['title']}\n")
+            self.basket_text.insert(tk.END, f"{i}. {item['title']} (Qty: {item['quantity']})\n")
             self.basket_text.insert(tk.END, f"   First Price: ${item['first_price']:.2f} ({item['first_date']})\n")
             self.basket_text.insert(tk.END, f"   Last Price:  ${item['last_price']:.2f} ({item['last_date']})\n")
             self.basket_text.insert(tk.END, f"   Change:      ${item['price_change']:+.2f} ({item['price_change_percent']:+.1f}%)\n")
             self.basket_text.insert(tk.END, f"   Period:      {item['duration_days']} days\n\n")
             
-            total_first_value += item['first_price']
-            total_last_value += item['last_price']
+            total_first_value += item['first_price'] * item['quantity']
+            total_last_value += item['last_price'] * item['quantity']
         
         self.basket_text.insert(tk.END, "=" * 50 + "\n")
         self.basket_text.insert(tk.END, f"Total Basket Value:\n")
@@ -266,15 +318,15 @@ class InflationCalculator:
             return
         
         # Calculate weighted inflation
-        total_first_value = sum(item['first_price'] for item in self.basket)
-        total_last_value = sum(item['last_price'] for item in self.basket)
+        total_first_value = sum(item['first_price'] * item['quantity'] for item in self.basket)
+        total_last_value = sum(item['last_price'] * item['quantity'] for item in self.basket)
         
         # Calculate weighted average price change
         weighted_price_changes = []
         total_weight = 0
         
         for item in self.basket:
-            weight = item['first_price']  # Weight by initial price
+            weight = item['first_price'] * item['quantity']  # Weight by initial price * quantity
             total_weight += weight
             weighted_price_changes.append(item['price_change_percent'] * weight)
         
@@ -321,8 +373,8 @@ class InflationCalculator:
         self.results_text.insert(tk.END, "-" * 30 + "\n")
         
         for i, item in enumerate(self.basket, 1):
-            weight_pct = (item['first_price'] / total_first_value * 100) if total_first_value > 0 else 0
-            self.results_text.insert(tk.END, f"{i}. {item['title'][:30]}...\n")
+            weight_pct = (item['first_price'] * item['quantity'] / total_first_value * 100) if total_first_value > 0 else 0
+            self.results_text.insert(tk.END, f"{i}. {item['title'][:30]}... (Qty: {item['quantity']})\n")
             self.results_text.insert(tk.END, f"   Weight: {weight_pct:.1f}% | Change: {item['price_change_percent']:+.1f}%\n")
 
 def main():
